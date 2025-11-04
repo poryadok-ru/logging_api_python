@@ -4,7 +4,7 @@ setup(
     name="poradock-logging",
     version="1.0.0",
     description="Python клиент для API логирования Poradock",
-    author="Aleksej Majka",
+    author="Aleksey Mayka",
     packages=find_packages(),
     install_requires=[
         "requests>=2.31.0",
