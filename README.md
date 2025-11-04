@@ -802,7 +802,8 @@ start = datetime.now()  # правильно
 ## 🔗 Полезные ссылки
 
 - **API документация:** https://api.alexmayka.ru
-- **Репозиторий:** https://github.com/AlexMayka/logging_python
+- **Репозиторий API (Backend):** https://github.com/AlexMayka/logs - серверная часть для приёма и обработки логов
+- **Репозиторий клиента (Python):** https://github.com/AlexMayka/logging_python
 - **Установка:** `pip install git+ssh://git@github.com/AlexMayka/logging_python.git`
 
 ## 📝 Лицензия
