@@ -6,7 +6,7 @@
 2. Коллеги устанавливают одной командой:
 
 ```bash
-pip install git+https://github.com/your-username/logging_python.git
+pip install git+https://github.com/AlexMayka/logging_python.git
 ```
 
 ---
