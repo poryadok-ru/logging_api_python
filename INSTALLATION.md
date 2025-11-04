@@ -5,9 +5,17 @@
 1. Загрузите проект на GitHub/GitLab
 2. Коллеги устанавливают одной командой:
 
+**Через HTTPS:**
 ```bash
 pip install git+https://github.com/AlexMayka/logging_python.git
 ```
+
+**Через SSH (рекомендуется):**
+```bash
+pip install git+ssh://git@github.com/AlexMayka/logging_python.git
+```
+
+💡 Для SSH требуется настроенный SSH ключ в GitHub
 
 ---
 

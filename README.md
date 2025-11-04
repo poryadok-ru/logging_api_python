@@ -6,8 +6,14 @@ Python-клиент для работы с API логирования на https
 
 ### Способ 1: Из Git репозитория (рекомендуется)
 
+**Через HTTPS:**
 ```bash
 pip install git+https://github.com/AlexMayka/logging_python.git
+```
+
+**Через SSH (рекомендуется для приватных репозиториев):**
+```bash
+pip install git+ssh://git@github.com/AlexMayka/logging_python.git
 ```
 
 ### Способ 2: Локальная установка
