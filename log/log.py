@@ -29,13 +29,13 @@ class Log:
 
     def __init__(self, token: str = None, timeout: int = 10, auto_host: bool = True, silent_errors: bool = False) -> None:
         """
-        Initialize the Log class
-        
+        Инициализация класса Log
+
         Args:
-            token: API token for authentication
-            timeout: Request timeout in seconds (default: 10)
-            auto_host: Automatically detect hostname (default: True)
-            silent_errors: Don't raise exceptions on network errors (default: False)
+            token: API токен для аутентификации
+            timeout: Таймаут запроса в секундах (по умолчанию: 10)
+            auto_host: Автоматически определять имя хоста (по умолчанию: True)
+            silent_errors: Не выбрасывать исключения при сетевых ошибках (по умолчанию: False)
         """
         self.token = token
         self.timeout = timeout
@@ -49,7 +49,7 @@ class Log:
         self._start_time: Optional[datetime] = None
 
     def set_headers(self, token: str) -> dict[str, str]:
-        """Set the headers for the Log class"""
+        """Установить заголовки для класса Log"""
         return {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
@@ -57,15 +57,15 @@ class Log:
     
     def _safe_request(self, method: str, url: str, **kwargs):
         """
-        Safe request wrapper with error handling
-        
+        Безопасная оболочка запроса с обработкой ошибок
+
         Args:
-            method: HTTP method
-            url: Request URL
-            **kwargs: Additional request parameters
-            
+            method: HTTP метод
+            url: URL запроса
+            **kwargs: Дополнительные параметры запроса
+
         Returns:
-            Response object or None if silent_errors=True
+            Объект ответа или None если silent_errors=True
         """
         try:
             response = self.session.request(method, url, timeout=self.timeout, **kwargs)
@@ -78,37 +78,37 @@ class Log:
                 raise
 
     def info(self, msg: str):
-        """Log an info message"""
+        """Записать информационное сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.INFO.value})
 
     def debug(self, msg: str):
-        """Log a debug message"""
+        """Записать отладочное сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.DEBUG.value})
 
     def warning(self, msg: str):
-        """Log a warning message"""
+        """Записать предупреждающее сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.WARNING.value})
 
     def error(self, msg: str):
-        """Log an error message"""
+        """Записать сообщение об ошибке"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.ERROR.value})
 
     def critical(self, msg: str):
-        """Log a critical message"""
+        """Записать критическое сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.CRITICAL.value})
 
     def log_start(self, msg: str, level: LogStatus):
-        """Log a start message"""
+        """Записать сообщение о начале"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": level.value})
 
     def finish_success(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
-        """Log a finish success message"""
+        """Записать сообщение об успешном завершении"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
             "PeriodFrom": period_from.isoformat(), 
@@ -119,7 +119,7 @@ class Log:
         })
 
     def finish_warning(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
-        """Log a finish warning message"""
+        """Записать сообщение о завершении с предупреждением"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
             "PeriodFrom": period_from.isoformat(), 
@@ -130,7 +130,7 @@ class Log:
         })
 
     def finish_error(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
-        """Log a finish error message"""
+        """Записать сообщение о завершении с ошибкой"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
             "PeriodFrom": period_from.isoformat(), 
@@ -141,7 +141,7 @@ class Log:
         })
 
     def finish_log(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, status: LogType = None, **kwargs: Any):
-        """Log a finish message"""
+        """Записать сообщение о завершении"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
             "PeriodFrom": period_from.isoformat(), 
@@ -152,12 +152,12 @@ class Log:
         })
     
     def __enter__(self):
-        """Start timing for context manager"""
+        """Начать отсчет времени для контекстного менеджера"""
         self._start_time = datetime.now()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Automatically log finish based on exception"""
+        """Автоматически логировать завершение на основе исключения"""
         end_time = datetime.now()
         
         if exc_type is None:
