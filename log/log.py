@@ -6,6 +6,8 @@ import requests as req
 from datetime import datetime
 import socket
 from functools import wraps
+import asyncio
+import aiohttp
 
 class LogStatus(Enum):
     INFO = "Info"
@@ -45,7 +47,9 @@ class Log:
         
         self.session = req.Session()
         self.session.headers.update(self.headers)
-        
+
+        self._async_session: Optional[aiohttp.ClientSession] = None
+
         self._start_time: Optional[datetime] = None
 
     def set_headers(self, token: str) -> dict[str, str]:
@@ -77,30 +81,87 @@ class Log:
             else:
                 raise
 
+    async def _get_async_session(self) -> aiohttp.ClientSession:
+        """Получить или создать асинхронную сессию"""
+        if self._async_session is None or self._async_session.closed:
+            self._async_session = aiohttp.ClientSession(
+                headers=self.headers,
+                timeout=aiohttp.ClientTimeout(total=self.timeout)
+            )
+        return self._async_session
+
+    async def _async_safe_request(self, method: str, url: str, **kwargs):
+        """
+        Асинхронная безопасная оболочка запроса с обработкой ошибок
+
+        Args:
+            method: HTTP метод
+            url: URL запроса
+            **kwargs: Дополнительные параметры запроса
+
+        Returns:
+            Объект ответа или None если silent_errors=True
+        """
+        try:
+            session = await self._get_async_session()
+            async with session.request(method, url, **kwargs) as response:
+                return response
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            if self.silent_errors:
+                print(f"[Logging Error] Failed to send log: {e}")
+                return None
+            else:
+                raise
+
     def info(self, msg: str):
         """Записать информационное сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.INFO.value})
+
+    async def a_info(self, msg: str):
+        """Асинхронно записать информационное сообщение"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
+        return await self._async_safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.INFO.value})
 
     def debug(self, msg: str):
         """Записать отладочное сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.DEBUG.value})
 
+    async def a_debug(self, msg: str):
+        """Асинхронно записать отладочное сообщение"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
+        return await self._async_safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.DEBUG.value})
+
     def warning(self, msg: str):
         """Записать предупреждающее сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.WARNING.value})
+
+    async def a_warning(self, msg: str):
+        """Асинхронно записать предупреждающее сообщение"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
+        return await self._async_safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.WARNING.value})
 
     def error(self, msg: str):
         """Записать сообщение об ошибке"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.ERROR.value})
 
+    async def a_error(self, msg: str):
+        """Асинхронно записать сообщение об ошибке"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
+        return await self._async_safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.ERROR.value})
+
     def critical(self, msg: str):
         """Записать критическое сообщение"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
         return self._safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.CRITICAL.value})
+
+    async def a_critical(self, msg: str):
+        """Асинхронно записать критическое сообщение"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.LOGS.value}"
+        return await self._async_safe_request("POST", url, json={"Msg": msg, "Status": LogStatus.CRITICAL.value})
 
     def log_start(self, msg: str, level: LogStatus):
         """Записать сообщение о начале"""
@@ -111,10 +172,21 @@ class Log:
         """Записать сообщение об успешном завершении"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
-            "PeriodFrom": period_from.isoformat(), 
-            "PeriodTo": period_to.isoformat(), 
-            "Host": host or self.host, 
-            "Status": LogType.SUCCESS.value, 
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.SUCCESS.value,
+            "Extra": kwargs
+        })
+
+    async def a_finish_success(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
+        """Асинхронно записать сообщение об успешном завершении"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
+        return await self._async_safe_request("POST", url, json={
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.SUCCESS.value,
             "Extra": kwargs
         })
 
@@ -122,10 +194,21 @@ class Log:
         """Записать сообщение о завершении с предупреждением"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
-            "PeriodFrom": period_from.isoformat(), 
-            "PeriodTo": period_to.isoformat(), 
-            "Host": host or self.host, 
-            "Status": LogType.WARNING.value, 
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.WARNING.value,
+            "Extra": kwargs
+        })
+
+    async def a_finish_warning(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
+        """Асинхронно записать сообщение о завершении с предупреждением"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
+        return await self._async_safe_request("POST", url, json={
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.WARNING.value,
             "Extra": kwargs
         })
 
@@ -133,10 +216,21 @@ class Log:
         """Записать сообщение о завершении с ошибкой"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
-            "PeriodFrom": period_from.isoformat(), 
-            "PeriodTo": period_to.isoformat(), 
-            "Host": host or self.host, 
-            "Status": LogType.ERROR.value, 
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.ERROR.value,
+            "Extra": kwargs
+        })
+
+    async def a_finish_error(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, **kwargs: Any):
+        """Асинхронно записать сообщение о завершении с ошибкой"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
+        return await self._async_safe_request("POST", url, json={
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": LogType.ERROR.value,
             "Extra": kwargs
         })
 
@@ -144,13 +238,24 @@ class Log:
         """Записать сообщение о завершении"""
         url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
         return self._safe_request("POST", url, json={
-            "PeriodFrom": period_from.isoformat(), 
-            "PeriodTo": period_to.isoformat(), 
-            "Host": host or self.host, 
-            "Status": status.value, 
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": status.value,
             "Extra": kwargs
         })
-    
+
+    async def a_finish_log(self, period_from: datetime, period_to: datetime, host: Optional[str] = None, status: LogType = None, **kwargs: Any):
+        """Асинхронно записать сообщение о завершении"""
+        url = f"{self.URL_BASE}/{self.API_GROUP}{Endpoint.EFF_RUNS.value}"
+        return await self._async_safe_request("POST", url, json={
+            "PeriodFrom": period_from.isoformat(),
+            "PeriodTo": period_to.isoformat(),
+            "Host": host or self.host,
+            "Status": status.value,
+            "Extra": kwargs
+        })
+
     def __enter__(self):
         """Начать отсчет времени для контекстного менеджера"""
         self._start_time = datetime.now()
