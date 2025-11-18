@@ -162,6 +162,215 @@ logger.finish_warning(
 )
 ```
 
+## ⚡ Асинхронная функциональность
+
+Библиотека поддерживает асинхронные методы для использования в `async/await` коде. Все асинхронные методы имеют префикс `a_` (async).
+
+### Быстрый старт с asyncio
+
+```python
+import asyncio
+from log import Log
+
+async def main():
+    async with Log(token="your-token") as logger:
+        await logger.a_info("Асинхронное приложение запущено")
+        await logger.a_debug("Отладочная информация")
+
+        # ... ваш асинхронный код ...
+
+        # Автоматическое логирование времени выполнения
+    # при выходе из контекста
+
+asyncio.run(main())
+```
+
+### Асинхронные методы логирования
+
+Все асинхронные методы возвращают `aiohttp.ClientResponse` объект (или `None` если `silent_errors=True` и произошла ошибка).
+
+| Метод | Описание | Уровень |
+|-------|----------|---------|
+| `await logger.a_info(msg: str)` | Асинхронное информационное сообщение | Info |
+| `await logger.a_debug(msg: str)` | Асинхронное отладочное сообщение | Debug |
+| `await logger.a_warning(msg: str)` | Асинхронное предупреждающее сообщение | Warning |
+| `await logger.a_error(msg: str)` | Асинхронное сообщение об ошибке | Error |
+| `await logger.a_critical(msg: str)` | Асинхронное критическое сообщение | Critical |
+
+**Примеры:**
+```python
+async def async_task():
+    logger = Log(token="your-token", silent_errors=True)
+
+    # Простая отправка
+    response = await logger.a_info("Асинхронное сообщение")
+    if response and response.status == 201:
+        print("✓ Лог отправлен")
+
+    # С переменными
+    user_count = 1250
+    await logger.a_info(f"Обработано пользователей: {user_count}")
+
+    # Закрытие сессии (рекомендуется)
+    await logger.close()
+```
+
+### Асинхронные методы завершения запусков
+
+| Метод | Описание |
+|-------|----------|
+| `await logger.a_finish_success(period_from, period_to, host, **kwargs)` | Асинхронное успешное завершение |
+| `await logger.a_finish_warning(period_from, period_to, host, **kwargs)` | Асинхронное завершение с предупреждением |
+| `await logger.a_finish_error(period_from, period_to, host, **kwargs)` | Асинхронное завершение с ошибкой |
+| `await logger.a_finish_log(period_from, period_to, host, status, **kwargs)` | Асинхронное завершение с произвольным статусом |
+
+**Примеры:**
+```python
+from datetime import datetime
+
+async def process_data():
+    async with Log(token="your-token") as logger:
+        start_time = datetime.now()
+        await logger.a_info("Начало обработки данных")
+
+        try:
+            # Ваш асинхронный код обработки данных
+            await asyncio.sleep(2)  # Имитация работы
+
+            end_time = datetime.now()
+            await logger.a_finish_success(
+                period_from=start_time,
+                period_to=end_time,
+                records_processed=5000,
+                duration_seconds=(end_time - start_time).total_seconds()
+            )
+
+        except Exception as e:
+            end_time = datetime.now()
+            await logger.a_error(f"Ошибка обработки: {e}")
+            await logger.a_finish_error(
+                period_from=start_time,
+                period_to=end_time,
+                error=str(e),
+                error_type=type(e).__name__
+            )
+```
+
+### Асинхронный контекстный менеджер
+
+Класс `Log` поддерживает асинхронный протокол контекстного менеджера:
+
+```python
+async def async_operation():
+    async with Log(token="your-token") as logger:
+        await logger.a_info("Начало работы")
+        # ваш асинхронный код
+        # автоматически логируется время выполнения и статус
+```
+
+### Закрытие соединений
+
+Для корректного освобождения ресурсов рекомендуется использовать асинхронный контекстный менеджер или явно закрывать соединения:
+
+```python
+# Рекомендуемый способ
+async with Log(token="your-token") as logger:
+    await logger.a_info("Сообщение")
+
+# Или явное закрытие
+logger = Log(token="your-token")
+await logger.a_info("Сообщение")
+await logger.close()  # Важно!
+```
+
+### Примеры использования
+
+#### Пример 1: Асинхронный ETL процесс
+
+```python
+import asyncio
+from log import Log
+from datetime import datetime
+
+async def async_etl():
+    async with Log(token="your-token", silent_errors=True) as logger:
+        await logger.a_info("=== Запуск асинхронного ETL ===")
+
+        # Extract
+        await logger.a_info("Извлечение данных...")
+        await asyncio.sleep(1)  # Имитация работы
+
+        # Transform
+        await logger.a_info("Трансформация данных...")
+        await asyncio.sleep(1)
+
+        # Load
+        await logger.a_info("Загрузка данных...")
+        await asyncio.sleep(1)
+
+        await logger.a_info("=== ETL завершен успешно ===")
+
+asyncio.run(async_etl())
+```
+
+#### Пример 2: Асинхронная обработка файлов
+
+```python
+import asyncio
+import aiofiles
+from log import Log
+
+async def process_files_async(file_list):
+    async with Log(token="your-token") as logger:
+        await logger.a_info(f"Начало обработки {len(file_list)} файлов")
+
+        processed = 0
+        for file_path in file_list:
+            try:
+                await logger.a_debug(f"Обработка: {file_path}")
+
+                # Асинхронная обработка файла
+                async with aiofiles.open(file_path, 'r') as f:
+                    content = await f.read()
+                    # ... обработка content ...
+
+                processed += 1
+
+            except Exception as e:
+                await logger.a_error(f"Ошибка {file_path}: {e}")
+
+        await logger.a_info(f"Обработано файлов: {processed}")
+
+# Использование
+asyncio.run(process_files_async(["file1.txt", "file2.txt"]))
+```
+
+#### Пример 3: Асинхронная фоновая задача
+
+```python
+import asyncio
+from log import Log
+
+async def background_monitor():
+    logger = Log(token="your-token", silent_errors=True)
+
+    try:
+        await logger.a_info("Мониторинг запущен")
+
+        while True:
+            await logger.a_debug("Проверка состояния")
+            # ... проверки системы ...
+
+            await asyncio.sleep(60)  # Каждую минуту
+
+    except KeyboardInterrupt:
+        await logger.a_info("Мониторинг остановлен")
+    finally:
+        await logger.close()  # Важно закрыть соединение
+
+asyncio.run(background_monitor())
+```
+
 ### Контекстный менеджер
 
 Класс `Log` поддерживает протокол контекстного менеджера (`with` statement), который автоматически:
@@ -590,7 +799,8 @@ pip install -e .
 
 ### Зависимости
 
-- `requests >= 2.31.0` - для HTTP запросов
+- `requests >= 2.31.0` - для синхронных HTTP запросов
+- `aiohttp >= 3.9.0` - для асинхронных HTTP запросов
 
 ### Типы и Enum
 
@@ -750,7 +960,21 @@ logger = Log(token=os.getenv("PORADOCK_LOG_TOKEN"))
 
 ### Поддерживается ли асинхронный режим?
 
-Текущая версия работает синхронно. Для минимизации задержек используйте `silent_errors=True` и небольшой `timeout`.
+Да! Начиная с версии 2.1, библиотека поддерживает полный асинхронный режим с использованием `aiohttp`. Все асинхронные методы имеют префикс `a_`.
+
+```python
+import asyncio
+from log import Log
+
+async def main():
+    async with Log(token="your-token") as logger:
+        await logger.a_info("Асинхронное сообщение")
+        await logger.a_debug("Отладочная информация")
+
+asyncio.run(main())
+```
+
+Для минимизации задержек в асинхронном режиме также рекомендуется использовать `silent_errors=True` и небольшой `timeout`.
 
 ## 🔍 Устранение проблем
 
@@ -814,4 +1038,4 @@ MIT License
 
 **Разработано для Poradock** 🚀
 
-*Версия документации: 2.0*
+*Версия документации: 2.1*

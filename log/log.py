@@ -281,3 +281,17 @@ class Log:
             )
         
         return False
+
+    async def close(self):
+        """Закрыть асинхронную сессию"""
+        if self._async_session and not self._async_session.closed:
+            await self._async_session.close()
+
+    async def __aenter__(self):
+        """Асинхронный контекстный менеджер - вход"""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Асинхронный контекстный менеджер - выход"""
+        await self.close()
+        return False
