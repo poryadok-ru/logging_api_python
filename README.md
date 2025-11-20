@@ -6,17 +6,17 @@ Python-клиент для работы с API логирования Poradock �
 
 **Через SSH (рекомендуется для приватных репозиториев):**
 ```bash
-pip install git+ssh://git@github.com/AlexMayka/logging_python.git
+pip install git+ssh://git@github.com/poryadok-ru/logging_api_python.git
 ```
 
 **Через HTTPS:**
 ```bash
-pip install git+https://github.com/AlexMayka/logging_python.git
+pip install git+https://github.com/poryadok-ru/logging_api_python.git
 ```
 
 **Локальная установка:**
 ```bash
-git clone git@github.com:AlexMayka/logging_python.git
+git clone git@github.com:poryadok-ru/logging_api_python.git
 cd logging_python
 pip install .
 ```
@@ -790,7 +790,7 @@ logging_python/
 
 ```bash
 # Клонирование репозитория
-git clone git@github.com:AlexMayka/logging_python.git
+git clone git@github.com:poryadok-ru/logging_api_python.git
 cd logging_python
 
 # Установка в режиме разработки (изменения сразу доступны)
@@ -1027,8 +1027,8 @@ start = datetime.now()  # правильно
 
 - **API документация:** https://api.alexmayka.ru
 - **Репозиторий API (Backend):** https://github.com/AlexMayka/logs - серверная часть для приёма и обработки логов
-- **Репозиторий клиента (Python):** https://github.com/AlexMayka/logging_python
-- **Установка:** `pip install git+ssh://git@github.com/AlexMayka/logging_python.git`
+- **Репозиторий клиента (Python):** https://github.com/poryadok-ru/logging_api_python
+- **Установка:** `pip install git+ssh://git@github.com/poryadok-ru/logging_api_python.git`
 
 ## 📝 Лицензия
 
