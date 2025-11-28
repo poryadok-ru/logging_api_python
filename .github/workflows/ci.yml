@@ -1,0 +1,38 @@
+name: CI - install and smoke test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+
+      - name: Smoke test import and basic usage
+        run: |
+          python - << 'PY'
+          from log import Log
+
+          # Просто проверяем, что класс импортируется и создаётся без падения.
+          # Сеть не трогаем, чтобы не зависеть от внешнего API.
+          logger = Log(token="dummy-token", silent_errors=True)
+          print("Import and Log() initialization OK")
+          PY
+
+
