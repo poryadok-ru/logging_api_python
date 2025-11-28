@@ -1,6 +1,6 @@
 # Poradock Logging Client
 
-Python-клиент для работы с API логирования Poradock на https://api.alexmayka.ru
+Python-клиент для работы с API логирования Poradock на https://api.automation.poryadok.ru/logging
 
 ## 📦 Установка
 
@@ -731,7 +731,7 @@ except requests.exceptions.Timeout:
 
 ## 📡 API Эндпоинты
 
-Библиотека работает со следующими эндпоинтами API `https://api.alexmayka.ru`:
+Библиотека работает со следующими эндпоинтами API `https://api.automation.poryadok.ru/logging`:
 
 | Endpoint | Метод | Описание | Используется в |
 |----------|-------|----------|----------------|
@@ -991,7 +991,7 @@ logger = Log(token="your-token", silent_errors=True, timeout=5)
 **Возможные причины:**
 1. Неверный токен - проверьте токен
 2. Токен деактивирован - активируйте токен в системе
-3. Ошибка сети - проверьте доступность `api.alexmayka.ru`
+3. Ошибка сети - проверьте доступность `api.automation.poryadok.ru/logging`
 
 **Проверка:**
 ```python
@@ -1025,7 +1025,7 @@ start = datetime.now()  # правильно
 
 ## 🔗 Полезные ссылки
 
-- **API документация:** https://api.alexmayka.ru
+- **API документация:** https://api.automation.poryadok.ru/logging/swagger/index.html
 - **Репозиторий API (Backend):** https://github.com/AlexMayka/logs - серверная часть для приёма и обработки логов
 - **Репозиторий клиента (Python):** https://github.com/poryadok-ru/logging_api_python
 - **Установка:** `pip install git+ssh://git@github.com/poryadok-ru/logging_api_python.git`

@@ -26,7 +26,7 @@ class Endpoint(Enum):
     EFF_RUNS = "eff-runs"
 
 class Log:
-    URL_BASE = "https://api.alexmayka.ru"
+    URL_BASE = "https://api.automation.poryadok.ru/logging"
     API_GROUP = "api/v1/"
 
     def __init__(self, token: str = None, timeout: int = 10, auto_host: bool = True, silent_errors: bool = False) -> None:
