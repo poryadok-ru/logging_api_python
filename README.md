@@ -735,8 +735,8 @@ except requests.exceptions.Timeout:
 
 | Endpoint | Метод | Описание | Используется в |
 |----------|-------|----------|----------------|
-| `/api/v1/logs` | POST | Создание лога | `info()`, `debug()`, `warning()`, `error()`, `critical()`, `log_start()` |
-| `/api/v1/eff-runs` | POST | Создание записи о запуске | `finish_success()`, `finish_warning()`, `finish_error()`, `finish_log()` |
+| `/v1/logs` | POST | Создание лога | `info()`, `debug()`, `warning()`, `error()`, `critical()`, `log_start()` |
+| `/v1/eff-runs` | POST | Создание записи о запуске | `finish_success()`, `finish_warning()`, `finish_error()`, `finish_log()` |
 
 ### HTTP статус коды
 
@@ -750,7 +750,7 @@ except requests.exceptions.Timeout:
 
 ### Формат запроса
 
-**Для логов (`/api/v1/logs`):**
+**Для логов (`/v1/logs`):**
 ```json
 {
   "Msg": "Текст сообщения",
@@ -758,7 +758,7 @@ except requests.exceptions.Timeout:
 }
 ```
 
-**Для запусков (`/api/v1/eff-runs`):**
+**Для запусков (`/v1/eff-runs`):**
 ```json
 {
   "PeriodFrom": "2025-11-04T10:00:00",
