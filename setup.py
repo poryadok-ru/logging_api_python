@@ -8,6 +8,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "requests>=2.31.0",
+        "aiohttp>=3.9.0",
     ],
     python_requires=">=3.7",
     classifiers=[

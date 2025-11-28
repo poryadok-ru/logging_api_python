@@ -16,7 +16,6 @@ def test_connection(token: str):
     print(f"Token: {token[:10]}...{token[-4:] if len(token) > 14 else '***'}")
     print()
     
-    # Создаём логгер с silent_errors=False чтобы видеть ошибки
     logger = Log(token=token, timeout=10, silent_errors=False)
     
     try:
